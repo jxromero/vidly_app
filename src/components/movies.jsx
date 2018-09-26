@@ -1,11 +1,18 @@
 import React, { Component } from "react";
-import { getMovies } from "../services/fakeMovieService";
+import {
+  getMovies,
+  deleteMovie,
+  purchaseMovie
+} from "../services/fakeMovieService";
 import Pagination from "./common/pagination";
 import ListGroup from "./common/listGroup";
+import CartGroup from "./common/cartgroup";
 import { paginate } from "../utils/paginate";
 import { getGenres } from "../services/fakeGenreService";
 import MoviesTable from "./moviesTable";
+import { Link } from "react-router-dom";
 import _ from "lodash";
+import SearchBox from "./common/searchbox";
 
 class Movies extends Component {
   state = {
@@ -13,8 +20,10 @@ class Movies extends Component {
     genres: [],
     pageSize: 3,
     currentPage: 1,
-    selectedGenre: { name: "All Genres" },
-    sortColumn: { path: "title", order: "asc" }
+    selectedGenre: "",
+    searchQuery: "",
+    sortColumn: { path: "title", order: "asc" },
+    purchase: []
   };
 
   componentDidMount() {
@@ -23,7 +32,8 @@ class Movies extends Component {
   }
 
   handleDelete = current => {
-    const movies = this.state.movies.filter(movie => movie !== current);
+    // const movies = this.state.movies.filter(movie => movie !== current);
+    const movies = deleteMovie(current._id);
     this.setState({ movies });
   };
 
@@ -44,8 +54,28 @@ class Movies extends Component {
   };
 
   handleGenreSelect = genre => {
-    this.setState({ selectedGenre: genre, currentPage: 1 });
+    this.setState({ selectedGenre: genre, searchQuery: "", currentPage: 1 });
   };
+
+  handleSearch = query => {
+    this.setState({ searchQuery: query, selectedGenre: "", currentPage: 1 });
+  };
+
+  handlePurchase = item => {
+    purchaseMovie(item._id);
+    const purchase = [...this.state.purchase];
+    let order = purchase.find(p => p === item);
+    let index = purchase.indexOf(order);
+    let olength = purchase.length;
+    if (!order) {
+      purchase.push(item);
+      purchase[olength].quantity = 1;
+    }
+    if (order) purchase[index].quantity = purchase[index].quantity + 1;
+    this.setState({ purchase });
+  };
+
+  handleDeletePurchase = () => {};
 
   getPagedData = () => {
     const {
@@ -53,14 +83,18 @@ class Movies extends Component {
       currentPage,
       movies: allMovies,
       selectedGenre,
-      sortColumn
+      sortColumn,
+      searchQuery
     } = this.state;
 
     // 1
-    const filtered =
-      selectedGenre && selectedGenre._id
-        ? allMovies.filter(m => m.genre._id === selectedGenre._id)
-        : allMovies;
+    let filtered = allMovies;
+    if (searchQuery)
+      filtered = allMovies.filter(movie =>
+        movie.title.toLowerCase().startsWith(searchQuery.toLowerCase())
+      );
+    else if (selectedGenre && selectedGenre._id)
+      filtered = allMovies.filter(m => m.genre._id === selectedGenre._id);
     // 2
     const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
     // 3
@@ -70,7 +104,14 @@ class Movies extends Component {
 
   render() {
     const { length: count } = this.state.movies;
-    const { pageSize, currentPage, selectedGenre, sortColumn } = this.state;
+    const {
+      pageSize,
+      currentPage,
+      selectedGenre,
+      sortColumn,
+      searchQuery,
+      purchase
+    } = this.state;
 
     if (count === 0) return <p>There are no movies in the database.</p>;
 
@@ -84,13 +125,22 @@ class Movies extends Component {
             selectedItem={selectedGenre}
             onItemSelect={this.handleGenreSelect}
           />
+          <CartGroup purchase={purchase} />
         </div>
         <div className="col">
-          <p>Showing {totalCount} movies in the database.</p>
+          <Link className="btn btn-primary" to="/movies/new">
+            New Movie
+          </Link>
+          <p>
+            Showing {totalCount} movies in the database.
+            {this.state.purchase.length}
+          </p>
+          <SearchBox onSearch={this.handleSearch} searchValue={searchQuery} />
           <MoviesTable
             movies={movies}
             onLike={this.handleLike}
             onDelete={this.handleDelete}
+            onPurchase={this.handlePurchase}
             onSort={this.handleSort}
             sortColumn={sortColumn}
           />

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Joi from "joi-browser";
 import Input from "./input";
+import Select from "./select";
 
 class Form extends Component {
   state = {
@@ -12,7 +13,7 @@ class Form extends Component {
     const options = { abortEarly: false };
     // Destructuring result = { error }
     const result = Joi.validate(this.state.data, this.schema, options);
-    console.log(result);
+    // console.log(result);
     if (!result.error) return null;
     const errors = {};
     for (let item of result.error.details) {
@@ -22,7 +23,6 @@ class Form extends Component {
   };
 
   validateOnChange = props => {
-    console.log(props);
     const { name, value } = props;
     const obj = { [name]: value };
     const schema = { [name]: this.schema[name] };
@@ -69,6 +69,20 @@ class Form extends Component {
         value={data[name]}
         onChange={this.handleChange}
         name={name}
+        label={label}
+        error={errors[name]}
+      />
+    );
+  }
+
+  renderSelect(name, label, genres) {
+    const { data, errors } = this.state;
+    return (
+      <Select
+        value={data[name]}
+        onChange={this.handleChange}
+        name={name}
+        genres={genres}
         label={label}
         error={errors[name]}
       />

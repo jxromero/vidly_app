@@ -14,6 +14,12 @@ class TableBody extends Component {
     return item._id + (column.path || column.key);
   };
 
+  renderClass = column => {
+    const styled = "text-center";
+    if (column.key) return styled;
+    return null;
+  };
+
   render() {
     const { data, columns } = this.props;
     return (
@@ -21,7 +27,10 @@ class TableBody extends Component {
         {data.map(item => (
           <tr key={item._id}>
             {columns.map(column => (
-              <td key={this.createKey(item, column)}>
+              <td
+                key={this.createKey(item, column)}
+                className={this.renderClass(column)}
+              >
                 {this.renderCell(item, column)}
               </td>
             ))}

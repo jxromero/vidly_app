@@ -20,6 +20,18 @@ class MoviesTable extends Component {
       )
     },
     {
+      key: "purchase",
+      content: movie => (
+        <button
+          onClick={() => this.props.onPurchase(movie)}
+          className="btn btn-primary"
+          disabled={!movie.numberInStock}
+        >
+          Buy
+        </button>
+      )
+    },
+    {
       key: "delete",
       content: movie => (
         <button

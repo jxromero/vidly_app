@@ -8,6 +8,7 @@ import NotFound from "./components/not-found";
 import NavBar from "./components/navbar";
 import LoginForm from "./components/loginForm";
 import RegisterForm from "./components/registerForm";
+import CartForm from "./components/cartform";
 
 class App extends Component {
   state = {};
@@ -16,6 +17,7 @@ class App extends Component {
       <main className="container">
         <NavBar />
         <Switch>
+          <Route path="/cart" component={CartForm} />
           <Route path="/register" component={RegisterForm} />
           <Route path="/login" component={LoginForm} />
           <Route path="/movies/:id" component={MovieFrom} />
